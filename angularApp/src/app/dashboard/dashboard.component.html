@@ -1,0 +1,196 @@
+<div class="mat-app-background basic-container">
+  <div class=""></div>
+  <div class="serv-app-container mat-elevation-z4">
+
+    <div class="serv-app-header">
+      <mat-form-field>
+        <input matInput (keyup)="applyFilter($event.target.value)" placeholder="Search">
+      </mat-form-field>
+    </div>
+
+    <div class="serv-app-header">
+    <mat-radio-group class="serv-app-radio-group" [(ngModel)]="statusFilterValue">
+      <mat-radio-button class="serv-app-radio-button black" *ngFor="let s of statusFilterValues" [value]="s.value" (change)="filterStatus($event.value)">
+        {{s.viewValue}}
+      </mat-radio-button>
+    </mat-radio-group>
+    </div>
+    <div class="serv-app-header">
+      <button mat-raised-button color="warn" disabled="{{ selection.selected.length == 0 }}" (click)="close()">Close</button>
+    </div>
+
+    <div class="serv-app-loading-shade" *ngIf="isLoadingResults">
+      <mat-spinner *ngIf="isLoadingResults"></mat-spinner>
+    </div>
+
+    <!-- COURT CASE TABLE -->
+
+    <mat-table *ngIf="displayCourtCaseTable" #table [dataSource]="dataSource" class="serv-app-table" matSort matSortActive="created" matSortDisableClear matSortDirection="asc">
+
+      <!-- Checkbox Column -->
+      <ng-container matColumnDef="select">
+        <mat-header-cell *matHeaderCellDef>
+          <mat-checkbox (change)="$event ? masterToggle() : null"
+                        [checked]="selection.hasValue() && isAllSelected()"
+                        [indeterminate]="selection.hasValue() && !isAllSelected()">
+          </mat-checkbox>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <mat-checkbox (click)="$event.stopPropagation()"
+                        (change)="$event ? select(row) : null"
+                        [checked]="selection.isSelected(row)">
+          </mat-checkbox>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Case Defendant County Court -->
+      <ng-container matColumnDef="county_court_name">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> County Court </mat-header-cell>
+        <mat-cell *matCellDef="let element"> {{ element.county_court_name }} </mat-cell>
+      </ng-container>
+
+      <!-- Case Number Column -->
+      <ng-container matColumnDef="case_number">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Case Number </mat-header-cell>
+        <mat-cell *matCellDef="let element"> {{ element.case_number }} </mat-cell>
+      </ng-container>
+
+      <!-- Case Defendant Name Column -->
+      <ng-container matColumnDef="defendant_name">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Defendant Name </mat-header-cell>
+        <mat-cell *matCellDef="let element"> {{ element.defendant_name }} </mat-cell>
+      </ng-container>
+
+      <!-- Case Parcel Address Column -->
+      <ng-container matColumnDef="parcel_address">
+        <mat-header-cell *matHeaderCellDef mat-sort-header>  Parcel Address </mat-header-cell>
+        <mat-cell *matCellDef="let element"> {{ element.parcel_address }} </mat-cell>
+      </ng-container>
+
+      <!-- Case Jobs Column -->
+      <ng-container matColumnDef="jobs">
+        <mat-header-cell *matHeaderCellDef> Jobs </mat-header-cell>
+        <mat-cell *matCellDef="let element">
+          <span>{{element.unfinished_jobs}}</span>
+          <span *ngFor="let job of element.jobs; let last = last;">
+            <button mat-button (click)="goToCourtCaseForm(element)">
+              <span>Job#{{ job.id }}</span>
+              <span class="green_mark" *ngIf="job.status==1">&#10004;</span>
+              <span class="red_mark" *ngIf="job.status!=1">&#x2718;</span><span *ngIf="!last">, </span>
+            </button>
+          </span>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Case Affidavit Column -->
+      <ng-container matColumnDef="affidavit">
+        <mat-header-cell *matHeaderCellDef> Affidavit </mat-header-cell>
+        <mat-cell *matCellDef="let element">
+          <a *ngIf="element.error_messages.length == 0" href="/affidavit/{{element.id}}" target="_blank"> {{ element.case_number.toLowerCase().trim() }}_affidavit.pdf </a>
+          <span *ngIf="element.error_messages.length > 0">Not ready</span><span class="affidavit-info" *ngIf="element.error_messages.length > 0" matTooltip="{{ element.error_messages.join('; \r\n') }}"> (&#8505;)</span>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Case Status Column -->
+      <ng-container matColumnDef="status">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Status </mat-header-cell>
+        <mat-cell *matCellDef="let element"> {{ element.status.replace('_', ' ')  }} </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;">
+      </mat-row>
+
+    </mat-table>
+
+    <!-- /COURT CASE TABLE -->
+
+    <!-- COURT CASE FORM -->
+
+    <div *ngIf="displayCourtCaseForm">
+      <button mat-button (click)="goToCourtCaseTable()">BACK</button>
+
+      <mat-table #table [dataSource]="jobsDataSource" class="serv-app-table" matSort matSortActive="created" matSortDisableClear matSortDirection="asc">
+
+        <ng-container matColumnDef="id">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> id </mat-header-cell>
+          <mat-cell *matCellDef="let element">
+            <button mat-button (click)="goToJobForm(element)">
+              {{element.id}}
+            </button>
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> name </mat-header-cell>
+          <mat-cell *matCellDef="let element"> {{element.contact?.first_name}} </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="county">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> county </mat-header-cell>
+          <mat-cell *matCellDef="let element"> {{courtCaseData.county_court_name}} </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="parcel_address">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> parcel addr </mat-header-cell>
+          <mat-cell *matCellDef="let element"> {{courtCaseData.parcel_address}} </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="party_address">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> party addr </mat-header-cell>
+          <mat-cell *matCellDef="let element"> {{element.contact?.address_one_liner}} </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="case_number">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> case number </mat-header-cell>
+          <mat-cell *matCellDef="let element"> {{courtCaseData.case_number}} </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="job_type">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> job type </mat-header-cell>
+          <mat-cell *matCellDef="let element"> {{element.job_type}} </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="order_received_date">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> order_received_date </mat-header-cell>
+          <mat-cell *matCellDef="let element"> {{element.order_received_date}} </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="attempts">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> attempts </mat-header-cell>
+          <mat-cell *matCellDef="let element"> </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="summons_days_until_expires">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> summons_days_until_expires </mat-header-cell>
+          <mat-cell *matCellDef="let element"> {{element.summons_days_until_expires}} </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="stat">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> status </mat-header-cell>
+          <mat-cell *matCellDef="let element">
+            <mat-checkbox [checked]="element.status"></mat-checkbox>
+          </mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="displayedJobsCollumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: displayedJobsCollumns;">
+        </mat-row>
+
+      </mat-table>
+
+    </div>
+
+    <!-- /COURT CASE FORM -->
+
+    <!-- JOB FORM -->
+    <div *ngIf="displayJobForm">
+      <span> HEY </span>
+    </div>
+    <!-- /JOB FORM -->
+
+    <mat-paginator [length]="resultsLength" [pageSize]="10">
+    </mat-paginator>
+
+  </div>
+</div>

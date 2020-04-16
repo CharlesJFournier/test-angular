@@ -1,0 +1,116 @@
+@import '~@angular/material/prebuilt-themes/deeppurple-amber.css';
+
+body {
+  font-family: Roboto, Arial, sans-serif;
+  margin: 0;
+}
+
+.serv-app-container {
+  display: flex;
+  flex-direction: column;
+  min-width: 300px;
+}
+
+.mat-column-select {
+  overflow: visible;
+}
+
+/* Structure */
+.serv-app-container {
+  display: flex;
+  flex-direction: column;
+  min-width: 300px;
+}
+
+.serv-app-header {
+  min-height: 64px;
+  padding: 8px 24px 0;
+}
+
+.mat-form-field {
+  font-size: 14px;
+  width: 100%;
+}
+
+.mat-table {
+  overflow: auto;
+  /* max-height: 500px; */
+}
+
+.serv-app-header {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  padding-left: 24px;
+  font-size: 20px;
+}
+
+.serv-app-loading-shade {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 56px;
+  right: 0;
+  background: rgba(0, 0, 0, 0.15);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.serv-app-rate-limit-reached {
+  color: #980000;
+  max-width: 360px;
+  text-align: center;
+}
+
+/* Column Widths */
+.mat-column-select {
+  max-width: 50px;
+}
+
+.mat-column-status {
+  max-width: 70px;
+}
+
+.mat-column-affidavit {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mat-radio-button {
+  padding-right: 16px;
+}
+
+.mat-button .close-button {
+  min-width: 0 important!;
+}
+
+.green_mark {
+  color: green;
+}
+
+.red_mark {
+  color: red;
+}
+
+.affidavit-info {
+  /* font-size: 40px; */
+  text-align: center;
+}
+
+.mat-tooltip {
+    font-size: 12px;
+    white-space: pre-line;
+    margin-top: -13px;
+    width: 200px;
+    position: relative;
+    left: -50px;
+}
+/*
+.mat-tooltip {
+margin-top: -13px;
+width: 150px;
+position: relative;
+left: -50px;
+} */
